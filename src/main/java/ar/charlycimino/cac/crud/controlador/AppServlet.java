@@ -1,6 +1,7 @@
 
 package ar.charlycimino.cac.crud.controlador;
 
+import ar.charlycimino.cac.crud.modelo.Alumno;
 import ar.charlycimino.cac.crud.modelo.Modelo;
 import ar.charlycimino.cac.crud.modelo.ModeloHC;
 import ar.charlycimino.cac.crud.modelo.ModeloMySQL;
@@ -34,7 +35,21 @@ public class AppServlet extends HttpServlet {
         req.getRequestDispatcher(URI_LIST).forward(req, resp);
     }
     
+    
+    
     /* TODO: Desarrollar Servlet */
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Alumno alu = new Alumno();
+        alu.setNombre( req.getParameter("nombre") );
+        alu.setApellido( req.getParameter("apellido") );
+        alu.setMail( req.getParameter("mail") );
+        alu.setFechaNacimiento(req.getParameter("fechaNac") );
+        alu.setFoto(req.getParameter("fotoBase64") );
+        model.addAlumno(alu);        
+        doGet(req, resp);
+    }
     
     
 }

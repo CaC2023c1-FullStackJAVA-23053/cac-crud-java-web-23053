@@ -13,8 +13,7 @@ let isFileReady = true;
 
 const handleChangeInputFile = async (event) => {
 
-    isFileReady = false
-
+    isFileReady = false;
     const foto = fotoInput.files[0];
     if (foto) {
         let fileName = foto.name.split('.')[0];

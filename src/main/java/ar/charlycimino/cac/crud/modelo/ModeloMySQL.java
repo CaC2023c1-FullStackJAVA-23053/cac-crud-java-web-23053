@@ -48,7 +48,22 @@ public class ModeloMySQL implements Modelo {
 
     @Override
     public int addAlumno(Alumno alumno) {
-        throw new RuntimeException("Falta implementar...");
+        try {
+            int cantRegsAfectados;
+            String sql = "INSERT INTO alumnos VALUES (null, ?, ?, ?, ?, ?)";
+            Connection con = Conexion.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, alumno.getNombre());
+            ps.setString(2, alumno.getApellido());
+            ps.setString(3, alumno.getMail());
+            ps.setString(4, alumno.getFechaNacimiento());
+            ps.setString(5, alumno.getFoto());
+            cantRegsAfectados = ps.executeUpdate();
+            return cantRegsAfectados;
+            
+        } catch (SQLException ex) {
+            throw new RuntimeException("Error al agregar alumno a la BD", ex);
+        }
     }
 
     @Override
