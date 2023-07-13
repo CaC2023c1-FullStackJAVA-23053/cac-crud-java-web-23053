@@ -16,15 +16,19 @@ import java.util.logging.Logger;
  * GitHub: https://github.com/CharlyCimino
  */
 public class ModeloMySQL implements Modelo {
+    
+    private static final String GET_ALUMNOS_QUERY = "SELECT * FROM alumnos";
+    private static final String GET_ALUMNO_BY_ID_QUERY = "SELECT * FROM alumnos WHERE id = ?";
+    private static final String ADD_ALUMNO_QUERY = "INSERT INTO alumnos VALUES (null, ?, ?, ?, ?, ?)";
+    private static final String EDIT_ALUMNO_BY_ID_QUERY = "UPDATE alumnos SET nombre=?, apellido=?, mail=?, fechaNac=?, fotoBase64=? WHERE id=?";
+    private static final String REMOVE_ALUMNO_BY_ID_QUERY = "DELETE FROM alumnos WHERE id = ?";
 
     @Override
     public List<Alumno> getAlumnos() {
-        try {
-            ArrayList<Alumno> alumnos = new ArrayList<>();
-            Connection con = Conexion.getConnection();
-            String sql = "SELECT * FROM alumnos";
-            PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(GET_ALUMNOS_QUERY);
+             ResultSet rs = ps.executeQuery();) {            
+            ArrayList<Alumno> alumnos = new ArrayList<>();            
             while (rs.next()) {
                 alumnos.add(rsToAlumno(rs));
             }
@@ -36,15 +40,14 @@ public class ModeloMySQL implements Modelo {
 
     @Override
     public Alumno getAlumno(int id) {
-        try {
-            Alumno alu = null;
-            Connection con = Conexion.getConnection();
-            String sql = "SELECT * FROM alumnos WHERE id = ?";
-            PreparedStatement ps = con.prepareStatement(sql);
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(GET_ALUMNO_BY_ID_QUERY); ) {
+            Alumno alu = null;            
             ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            rs.next();
-            alu = rsToAlumno(rs);
+            try (ResultSet rs = ps.executeQuery();) {
+                rs.next();
+                alu = rsToAlumno(rs);
+            }   
             return alu;
         } catch (SQLException ex) {
             throw new RuntimeException("Error al obtener alumno con el ID " + id + " en la BD", ex);
@@ -53,15 +56,12 @@ public class ModeloMySQL implements Modelo {
 
     @Override
     public int addAlumno(Alumno alumno) {
-        try {
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(ADD_ALUMNO_QUERY); ) {
             int cantRegsAfectados;
-            String sql = "INSERT INTO alumnos VALUES (null, ?, ?, ?, ?, ?)";
-            Connection con = Conexion.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
             fillPreparedStatement(ps, alumno);
             cantRegsAfectados = ps.executeUpdate();
             return cantRegsAfectados;
-
         } catch (SQLException ex) {
             throw new RuntimeException("Error al agregar alumno a la BD", ex);
         }
@@ -69,11 +69,9 @@ public class ModeloMySQL implements Modelo {
 
     @Override
     public int updateAlumno(Alumno alumno) {
-        try {
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(EDIT_ALUMNO_BY_ID_QUERY); ) {
             int cantRegsAfectados;
-            String sql = "UPDATE alumnos SET nombre=?, apellido=?, mail=?, fechaNac=?, fotoBase64=? WHERE id=?";
-            Connection con = Conexion.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
             fillPreparedStatement(ps, alumno);            
             ps.setInt(6, alumno.getId());
             cantRegsAfectados = ps.executeUpdate();
@@ -85,7 +83,15 @@ public class ModeloMySQL implements Modelo {
 
     @Override
     public int removeAlumno(int id) {
-        throw new RuntimeException("Falta implementar...");
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(REMOVE_ALUMNO_BY_ID_QUERY); ) {
+            int cantRegsAfectados;            
+            ps.setInt(1, id);
+            cantRegsAfectados = ps.executeUpdate();
+            return cantRegsAfectados;
+        } catch (SQLException ex) {
+            throw new RuntimeException("Error al borrar alumno de la BD", ex);
+        }
     }
     
     private void fillPreparedStatement(PreparedStatement ps, Alumno alu) throws SQLException {
